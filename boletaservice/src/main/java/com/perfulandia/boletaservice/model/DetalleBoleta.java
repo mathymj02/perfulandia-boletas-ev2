@@ -1,5 +1,6 @@
 package com.perfulandia.boletaservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,5 +22,6 @@ public class DetalleBoleta {
 
     @ManyToOne
     @JoinColumn(name = "boleta_id")
+    @JsonBackReference
     private Boleta boleta;
 }

@@ -8,15 +8,16 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 public class BoletaserviceApplication {
 
-	public static RestTemplate main(String[] args) {
+	public static void main(String[] args) {
 		SpringApplication.run(BoletaserviceApplication.class, args);
-
-        return null;
-    }
-	@Bean
-	public RestTemplate restTemplate(){
-		return new RestTemplate();
 	}
 
-
+	@Bean
+	public RestTemplate restTemplate() {
+		return new RestTemplate();
+	}
 }
+
+
+
+

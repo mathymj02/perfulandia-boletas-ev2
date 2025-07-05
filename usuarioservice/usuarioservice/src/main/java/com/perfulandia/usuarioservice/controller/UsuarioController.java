@@ -1,42 +1,54 @@
 package com.perfulandia.usuarioservice.controller;
 
+import com.perfulandia.usuarioservice.hateoas.UsuarioModelAssembler;
 import com.perfulandia.usuarioservice.model.Usuario;
 import com.perfulandia.usuarioservice.service.UsuarioService;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
     private final UsuarioService service;
-    //Constructor para poder consumir la interfaz
-    public UsuarioController(UsuarioService service){
-        this.service=service;
+    private final UsuarioModelAssembler assembler;
+
+    public UsuarioController(UsuarioService service, UsuarioModelAssembler assembler) {
+        this.service = service;
+        this.assembler = assembler;
     }
 
     @GetMapping
-    public List<Usuario> listar(){
-        return service.listar();
-    }
+    public CollectionModel<EntityModel<Usuario>> listar() {
+        List<EntityModel<Usuario>> usuarios = service.listar().stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
 
-    @PostMapping
-    public Usuario guardar(@RequestBody Usuario usuario){
-        return service.guardar(usuario);
+        return CollectionModel.of(usuarios,
+                linkTo(methodOn(UsuarioController.class).listar()).withSelfRel());
     }
 
     @GetMapping("/{id}")
-    public Usuario buscar(@PathVariable long id){
-        return service.buscar(id);
+    public EntityModel<Usuario> buscar(@PathVariable long id) {
+        Usuario usuario = service.buscar(id);
+        return assembler.toModel(usuario);
+    }
+
+    @PostMapping
+    public Usuario guardar(@RequestBody Usuario usuario) {
+        return service.guardar(usuario);
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable long id){
+    public void eliminar(@PathVariable long id) {
         service.eliminar(id);
     }
-
-
-
 }
+
+

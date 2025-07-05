@@ -1,52 +1,66 @@
 package com.perfulandia.productservice.controller;
-import com.perfulandia.productservice.model.Usuario;
+
 import com.perfulandia.productservice.model.Producto;
+import com.perfulandia.productservice.model.Usuario;
 import com.perfulandia.productservice.service.ProductoService;
+import com.perfulandia.productservice.assembler.ProductoModelAssembler;
+
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
-//Nuevas importaciones DTO conexión al MS usuario
 import org.springframework.web.client.RestTemplate;
-//Para hacer peticiones HTTP a otros microservicios.
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.http.ResponseEntity;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/productos")
 public class ProductoController {
 
-
-
     private final ProductoService servicio;
+    private final ProductoModelAssembler assembler;
     private final RestTemplate restTemplate;
-    public ProductoController(ProductoService servicio,  RestTemplate restTemplate){
+
+    public ProductoController(ProductoService servicio, ProductoModelAssembler assembler, RestTemplate restTemplate) {
         this.servicio = servicio;
+        this.assembler = assembler;
         this.restTemplate = restTemplate;
     }
 
-    //listar
     @GetMapping
-    public List<Producto> listar(){
-        return servicio.listar();
-    }
-    //guardar
-    @PostMapping
-    public Producto guardar(@RequestBody Producto producto){
-        return servicio.guardar(producto);
-    }
-    //buscar x id
-    @GetMapping("/{id}")
-    public Producto buscar(@PathVariable long id){
-        return servicio.bucarPorId(id);
-    }
-    //Eliminar
-    @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable long id){
-        servicio.eliminar(id);
+    public CollectionModel<EntityModel<Producto>> listar() {
+        List<EntityModel<Producto>> productos = servicio.listar().stream()
+                .map(assembler::toModel)
+                .collect(Collectors.toList());
+
+        return CollectionModel.of(productos,
+                linkTo(methodOn(ProductoController.class).listar()).withSelfRel());
     }
 
-    //Nuevo método
+    @PostMapping
+    public EntityModel<Producto> guardar(@RequestBody Producto producto) {
+        Producto guardado = servicio.guardar(producto);
+        return assembler.toModel(guardado);
+    }
+
+    @GetMapping("/{id}")
+    public EntityModel<Producto> buscar(@PathVariable long id) {
+        Producto producto = servicio.bucarPorId(id);
+        return assembler.toModel(producto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminar(@PathVariable long id) {
+        servicio.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/usuario/{id}")
-    public Usuario obtenerUsuario(@PathVariable long id){
-        return restTemplate.getForObject("http://localhost:8081/api/usuarios/"+id,Usuario.class);
+    public Usuario obtenerUsuario(@PathVariable long id) {
+        return restTemplate.getForObject("http://localhost:8085/api/usuarios/" + id, Usuario.class);
     }
 }
+

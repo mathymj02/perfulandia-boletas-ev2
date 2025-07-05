@@ -1,17 +1,15 @@
 package com.perfulandia.boletaservice.service;
 
+
 import com.perfulandia.boletaservice.model.Boleta;
 import com.perfulandia.boletaservice.repository.BoletaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class BoletaService {
-    @Autowired
     private final BoletaRepository boletaRepo;
 
     public BoletaService(BoletaRepository boletaRepo) {
@@ -45,6 +43,6 @@ public class BoletaService {
     }
 
     public List<Boleta> obtenerTodas() {
-        return List.of();
+        return boletaRepo.findAll();
     }
 }
